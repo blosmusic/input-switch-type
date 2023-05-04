@@ -5,16 +5,29 @@ selectedOptions.addEventListener("change", (event) => {
 
   switch (selectedOptionValue) {
     case "mono":
-      console.log("Mono");
+      monoAudio();
       break;
     case "stereo":
-      console.log("Stereo");
+      stereoAudio();
       break;
     case "midi":
-      console.log("Midi");
+      midiAudio();
       break;
     default:
       console.log("No value selected");
       break;
   }
 });
+
+function monoAudio() {
+  console.log("Mono");
+  
+}
+
+function stereoAudio() {
+  console.log("Stereo");
+}
+
+function midiAudio() {
+  console.log("Midi");
+}
