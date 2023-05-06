@@ -1,7 +1,7 @@
 const selectedOptions = document.getElementById("audio-source");
 
 let midiInput;
-const synth = new Tone.Synth().toDestination();
+const synth = new Tone.PolySynth().toDestination();
 const now = Tone.now();
 
 document.getElementById("info").addEventListener("click", async () => {
@@ -91,12 +91,12 @@ function midiAudio() {
               // Note On event
               console.log("Note On:", note, velocity);
               // Trigger Tone.js sound or perform other actions based on the received note
-              synth.triggerAttack(note, now, velocity / 127);
+              synth.triggerAttack(Tone.Frequency(note, 'midi'), now, velocity / 127);
             } else if (command === 128) {
               // Note Off event
               console.log("Note Off:", note, velocity);
               // Handle the note off event if needed
-              synth.triggerRelease();
+              synth.triggerRelease(Tone.Frequency(note, "midi"));
             }
           };
         } else {
@@ -107,8 +107,6 @@ function midiAudio() {
     .catch((error) => {
       console.log("MIDI connection error:", error);
     });
-
-
 }
 
 function closeMidiInput() {
