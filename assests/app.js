@@ -1,10 +1,71 @@
+const select = document.getElementById("audioDevices");
 const selectedOptions = document.getElementById("audio-source");
+
+// Create a new AudioContext
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let mediaStream;
+let sourceNode;
 
 let midiInput;
 const synth = new Tone.PolySynth().toDestination();
 const now = Tone.now();
 
-document.getElementById("info").addEventListener("click", async () => {
+// Handle device selection change
+select.addEventListener("change", async () => {
+  const selectedDeviceId = select.value;
+
+  // Check if there is an active MediaStream and disconnect it
+  if (mediaStream && sourceNode) {
+    sourceNode.disconnect();
+    mediaStream.getTracks().forEach((track) => track.stop());
+  }
+
+  try {
+    // Create a MediaStream using the selected audio device
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: { deviceId: selectedDeviceId },
+    });
+
+    // Create a MediaStreamAudioSourceNode
+    sourceNode = audioContext.createMediaStreamSource(mediaStream);
+
+    // Connect the source node to the audio context destination
+    sourceNode.connect(audioContext.destination);
+  } catch (error) {
+    console.error("Error accessing audio device:", error);
+  }
+});
+
+// Enumerate audio devices after user permission is granted
+navigator.mediaDevices
+  .getUserMedia({ audio: true })
+  .then(() => {
+    // Enumerate audio devices
+    navigator.mediaDevices
+      .enumerateDevices()
+      .then((devices) => {
+        // Filter audio input devices
+        const audioInputDevices = devices.filter(
+          (device) => device.kind === "audioinput"
+        );
+
+        // Populate the select element with audio input devices
+        audioInputDevices.forEach((device) => {
+          const option = document.createElement("option");
+          option.value = device.deviceId;
+          option.text = device.label || `Audio Input ${device.deviceId}`;
+          select.appendChild(option);
+        });
+      })
+      .catch((error) => {
+        console.error("Error enumerating audio devices:", error);
+      });
+  })
+  .catch((error) => {
+    console.error("Error accessing audio device:", error);
+  });
+
+document.body.addEventListener("click", async () => {
   await Tone.start();
   document.querySelector("h4").innerText = "Permission Granted";
   console.log("audio is ready");
@@ -91,7 +152,11 @@ function midiAudio() {
               // Note On event
               console.log("Note On:", note, velocity);
               // Trigger Tone.js sound or perform other actions based on the received note
-              synth.triggerAttack(Tone.Frequency(note, 'midi'), now, velocity / 127);
+              synth.triggerAttack(
+                Tone.Frequency(note, "midi"),
+                now,
+                velocity / 127
+              );
             } else if (command === 128) {
               // Note Off event
               console.log("Note Off:", note, velocity);

@@ -10,19 +10,31 @@
     <title>Input Switch</title>
 </head>
 <body>
-    <h1>Audio Input</h1>
-    <div class="custom-select">
-        <select id="audio-source">
-            <option value="none">Select Source:</option>
-            <option value="mono">Mono</option>
-            <option value="stereo">Stereo</option>
-            <option value="midi">MIDI</option>
-        </select>
+    <h1>Audio Source and Type</h1>
+    <div class="audio-section">
+
+        <div class="custom-select">
+            <label for="audioDevices">Select Input:</label>
+            <select id="audioDevices"></select>
+        </div>
+
+        <div class="custom-select">
+            <label for="audio-source">Select Audio:</label>
+            <select id="audio-source">
+                <option value="none">Select Type:</option>
+                <option value="mono">Mono</option>
+                <option value="stereo">Stereo</option>
+                <option value="midi">MIDI</option>
+            </select>
+        </div>
+
     </div>
-    <div id="info">
-        <h4>Click to Enable Audio</h4>
-        <p>The input switch allows users to select the input type of their audio source.</p>
-    </div>
+
+        <div id="info">
+            <h4>Click to Enable Audio</h4>
+            <p>The input switch allows users to select the input type of their audio source.</p>
+        </div>
+        
 </body>
 <script src="./assests/app.js"></script>
 </html>
