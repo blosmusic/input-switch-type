@@ -198,39 +198,54 @@ function midiAudio() {
   navigator
     .requestMIDIAccess()
     .then((access) => {
-      const inputs = access.inputs.values();
-      for (let input of inputs) {
-        if (input.name === "iRig KEYS 25") {
-          midiInput = input;
-          midiInput.onmidimessage = (message) => {
-            const command = message.data[0] & 0xf0;
-            const note = message.data[1];
-            const velocity = message.data[2];
+      const inputSelector = document.getElementById("midi-input-selector"); // HTML element to display input selection
 
-            if (command === 144) {
-              // Note On event
-              console.log("Note On:", note, velocity);
-              // Trigger Tone.js sound or perform other actions based on the received note
-              synth.triggerAttack(
-                Tone.Frequency(note, "midi"),
-                now,
-                velocity / 127
-              );
-            } else if (command === 128) {
-              // Note Off event
-              console.log("Note Off:", note, velocity);
-              // Handle the note off event if needed
-              synth.triggerRelease(Tone.Frequency(note, "midi"));
-            }
-          };
-        } else {
-          input.onmidimessage = null; // Remove the event listener
+      // Event handler for input selection change
+      inputSelector.addEventListener("change", (event) => {
+        const selectedInputId = event.target.value;
+        const selectedInput = access.inputs.get(selectedInputId);
+
+        if (selectedInput) {
+          // Clear existing input event listeners
+          access.inputs.forEach((input) => {
+            input.onmidimessage = null;
+          });
+
+          // Enable MIDI input for the selected device
+          selectedInput.onmidimessage = handleMIDIMessage;
         }
-      }
+      });
+
+      // Populate the inputSelector with available MIDI input options
+      access.inputs.forEach((input) => {
+        const option = document.createElement("option");
+        option.value = input.id;
+        option.text = input.name;
+        inputSelector.appendChild(option);
+      });
     })
     .catch((error) => {
       console.log("MIDI connection error:", error);
     });
+
+  // Event handler for MIDI messages
+  function handleMIDIMessage(message) {
+    const command = message.data[0] & 0xf0;
+    const note = message.data[1];
+    const velocity = message.data[2];
+
+    if (command === 144 && velocity > 0) {
+      // Note On event
+      const frequency = Tone.Midi(note).toFrequency();
+      synth.triggerAttack(frequency);
+      console.log("note on", note, velocity);
+    } else if (command === 128 || (command === 144 && velocity === 0)) {
+      // Note Off event
+      const frequency = Tone.Midi(note).toFrequency();
+      synth.triggerRelease(frequency);
+    }
+  }
+  
 }
 
 function closeMidiInput() {
