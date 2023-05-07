@@ -6,9 +6,65 @@ const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let mediaStream;
 let sourceNode;
 
+// Create midi and synth objects
 let midiInput;
-const synth = new Tone.PolySynth().toDestination();
 const now = Tone.now();
+const synth = new Tone.PolySynth({
+  oscillator: {
+    type: "sine2",
+  },
+  envelope: {
+    attack: 0.1,
+    decay: 0.1,
+    sustain: 0.5,
+    release: 0.1,
+  },
+
+  volume: -12,
+
+  // Set the polyphony to 4 voices
+  polyphony: 4,
+
+  // Set the maximum number of voices to 4
+  maxPolyphony: 4,
+
+  // Set the portamento to 0.1 seconds
+  portamento: 0.1,
+
+  // Set the detune to 0 cents
+  detune: 0,
+
+  // Set the voice vibrato to 0.5 Hz with a depth of 0.5 semitones
+  vibrato: {
+    frequency: 0.5,
+    depth: 0.5,
+    type: "sine",
+  },
+
+  // Set the voice tremolo to 4 Hz with a depth of 0.25
+  tremolo: {
+    frequency: 4,
+    depth: 0.25,
+    type: "sine",
+  },
+
+  // Set the voice panning to -20% left with a width of 40%
+  panning: {
+    pan: -0.2,
+    width: 0.4,
+  },
+
+  // Set the voice volume to -12 dB
+  volume: -12,
+
+  // Set the voice filter frequency to 440 Hz with a Q of 1
+  filter: {
+    type: "lowpass",
+    frequency: 440,
+    rolloff: -12,
+    Q: 1,
+  }
+}).toDestination();
 
 // Handle device selection change
 select.addEventListener("change", async () => {
