@@ -1,36 +1,54 @@
 const select = document.getElementById("audioDevices");
 const selectedOptions = document.getElementById("audio-source");
 
-// Create a new AudioContext
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-let mediaStream;
-let sourceNode;
-
 let midiInput;
 const synth = new Tone.PolySynth().toDestination();
 const now = Tone.now();
+
+////////////////////////////
+
+// Create a new AudioContext
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let mediaStream;
+let mediaStreamSource;
+let audioDestination;
 
 // Handle device selection change
 select.addEventListener("change", async () => {
   const selectedDeviceId = select.value;
 
-  // Check if there is an active MediaStream and disconnect it
-  if (mediaStream && sourceNode) {
-    sourceNode.disconnect();
-    mediaStream.getTracks().forEach((track) => track.stop());
-  }
-
   try {
+    // Check if there is an active MediaStream and stop it
+    if (mediaStream) {
+      mediaStream.getTracks().forEach((track) => track.stop());
+    }
+
+    // Check if there is an active MediaStreamSource and disconnect it
+    if (mediaStreamSource) {
+      mediaStreamSource.disconnect(audioDestination);
+      mediaStreamSource = null;
+    }
+
     // Create a MediaStream using the selected audio device
     mediaStream = await navigator.mediaDevices.getUserMedia({
       audio: { deviceId: selectedDeviceId },
     });
 
     // Create a MediaStreamAudioSourceNode
-    sourceNode = audioContext.createMediaStreamSource(mediaStream);
+    mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
 
-    // Connect the source node to the audio context destination
-    sourceNode.connect(audioContext.destination);
+    // Check if there is an active AudioDestinationNode
+    if (!audioDestination) {
+      audioDestination = audioContext.destination;
+    }
+
+    // Connect the source node to the destination node
+    mediaStreamSource.connect(audioDestination);
+
+    // Resume the audio context (required on some browsers)
+    if (audioContext.state === "suspended") {
+      await audioContext.resume();
+    }
   } catch (error) {
     console.error("Error accessing audio device:", error);
   }
@@ -64,6 +82,8 @@ navigator.mediaDevices
   .catch((error) => {
     console.error("Error accessing audio device:", error);
   });
+
+////////////////////////////
 
 document.body.addEventListener("click", async () => {
   await Tone.start();
