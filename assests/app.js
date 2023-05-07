@@ -63,7 +63,7 @@ const synth = new Tone.PolySynth({
     frequency: 440,
     rolloff: -12,
     Q: 1,
-  }
+  },
 }).toDestination();
 
 // Handle device selection change
@@ -121,12 +121,14 @@ navigator.mediaDevices
     console.error("Error accessing audio device:", error);
   });
 
+// Create Audio Permission
 document.body.addEventListener("click", async () => {
   await Tone.start();
   document.querySelector("h4").innerText = "Permission Granted";
   console.log("audio is ready");
 });
 
+// Allow audio to start
 const meter = new Tone.Meter();
 let inputLevelValueRead = null;
 
@@ -144,6 +146,7 @@ function startAudio() {
     });
 }
 
+// Select audio type
 selectedOptions.addEventListener("change", (event) => {
   const selectedOptionValue = event.target.value;
 
