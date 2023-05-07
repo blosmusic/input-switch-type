@@ -88,6 +88,7 @@ select.addEventListener("change", async () => {
 
     // Connect the source node to the audio context destination
     sourceNode.connect(audioContext.destination);
+
   } catch (error) {
     console.error("Error accessing audio device:", error);
   }
@@ -140,6 +141,7 @@ function startAudio() {
     .open()
     .then(() => {
       console.log("Mic is open");
+      resumeAudio();
     })
     .catch((e) => {
       console.log("Mic is not open");
@@ -275,4 +277,13 @@ function muteAudio() {
   audioContext.suspend();
   Tone.Transport.stop();
   console.log("Mute");
+}
+
+function resumeAudio() {
+  // Resume the audio context
+  if (audioContext.state === "suspended") {
+    audioContext.resume();
+    Tone.Transport.start();
+  }
+  console.log("Resume");
 }
