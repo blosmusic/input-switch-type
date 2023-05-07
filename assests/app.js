@@ -3,6 +3,7 @@ const selectedOptions = document.getElementById("audio-source");
 
 // Create a new AudioContext
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+audioContext.suspend();
 let mediaStream;
 let sourceNode;
 
@@ -161,25 +162,24 @@ selectedOptions.addEventListener("change", (event) => {
       midiAudio();
       break;
     default:
-      mic.close();
-      console.log("No value selected");
+      muteAudio();
       break;
   }
 });
 
+/// Audio Functions
+// MONO AUDIO
 function monoAudio() {
   console.log("Mono");
-  closeMidiInput();
   startAudio();
   const monoOutput = new Tone.Mono();
   mic.connect(monoOutput);
   monoOutput.toDestination();
-  // console.log(monoOutput);
 }
 
+// STEREO AUDIO
 function stereoAudio() {
   console.log("Stereo");
-  closeMidiInput();
   startAudio();
   const monoLeft = new Tone.Mono({ channelCount: 1 });
   const monoRight = new Tone.Mono({ channelCount: -1 });
@@ -188,6 +188,7 @@ function stereoAudio() {
   monoRight.toDestination();
 }
 
+// MIDI AUDIO
 function midiAudio() {
   console.log("Midi");
   mic.close();
@@ -200,28 +201,49 @@ function midiAudio() {
     .then((access) => {
       const inputSelector = document.getElementById("midi-input-selector"); // HTML element to display input selection
 
-      // Event handler for input selection change
-      inputSelector.addEventListener("change", (event) => {
-        const selectedInputId = event.target.value;
-        const selectedInput = access.inputs.get(selectedInputId);
-
-        if (selectedInput) {
-          // Clear existing input event listeners
-          access.inputs.forEach((input) => {
-            input.onmidimessage = null;
-          });
-
-          // Enable MIDI input for the selected device
-          selectedInput.onmidimessage = handleMIDIMessage;
-        }
-      });
-
       // Populate the inputSelector with available MIDI input options
       access.inputs.forEach((input) => {
         const option = document.createElement("option");
         option.value = input.id;
         option.text = input.name;
         inputSelector.appendChild(option);
+      });
+
+      // Event handler for input selection change
+      inputSelector.addEventListener("change", (event) => {
+        const selectedInputId = event.target.value;
+
+        // Clear existing input event listeners for all devices
+        access.inputs.forEach((input) => {
+          input.onmidimessage = null;
+        });
+
+        if (
+          selectedInputId !== "none" &&
+          selectedOptions.value !== "mono" &&
+          selectedOptions.value !== "stereo"
+        ) {
+          const selectedInput = access.inputs.get(selectedInputId);
+          // Enable MIDI input for the selected device
+          selectedInput.onmidimessage = handleMIDIMessage;
+        }
+      });
+
+      // Event handler for audio output selection change
+      selectedOptions.addEventListener("change", (event) => {
+        const selectedOutput = event.target.value;
+        const selectedInputId = inputSelector.value;
+
+        if (selectedOutput === "mono" || selectedOutput === "stereo" || selectedOutput === "none") {
+          // Clear existing input event listeners for all devices
+          access.inputs.forEach((input) => {
+            input.onmidimessage = null;
+          });
+        } else if (selectedInputId !== "none") {
+          const selectedInput = access.inputs.get(selectedInputId);
+          // Enable MIDI input for the selected device
+          selectedInput.onmidimessage = handleMIDIMessage;
+        }
       });
     })
     .catch((error) => {
@@ -245,22 +267,12 @@ function midiAudio() {
       synth.triggerRelease(frequency);
     }
   }
-  
 }
 
-function closeMidiInput() {
-  // Check if the MIDI input is available
-  if (midiInput) {
-    // Clear the MIDI input event handler
-    midiInput.onmidimessage = null;
-    // Close the MIDI input
-    midiInput
-      .close()
-      .then(() => {
-        console.log("MIDI input closed");
-      })
-      .catch((error) => {
-        console.error("Failed to close MIDI input:", error);
-      });
-  }
+// MUTE AUDIO
+function muteAudio() {
+  mic.close();
+  audioContext.suspend();
+  Tone.Transport.stop();
+  console.log("Mute");
 }
