@@ -1,4 +1,4 @@
-const select = document.getElementById("audioDevices");
+const select = document.getElementById("audio-devices-input");
 const selectedOptions = document.getElementById("audio-source");
 
 // Create a new AudioContext
