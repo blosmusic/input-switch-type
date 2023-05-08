@@ -35,7 +35,7 @@ label {
     flex-direction: row;
     align-items: center;
     justify-content: space-around;
-    height: 20vh;
+    height: 30vh;
 }
 
 .custom-select {
